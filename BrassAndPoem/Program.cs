@@ -1,10 +1,5 @@
 ﻿
 
-
-
-
-
-
 //create a "products" variable here to include at least five Product instances. Give them appropriate ProductTypeIds.
 List<Product> products = new List<Product>();
 
@@ -46,6 +41,17 @@ productTypes.Add(poem);
 //put your greeting here
 
 // Associate product types with products
+
+Product getProductFromList(string productName){
+
+    Product ourProduct = products.FirstOrDefault(p => p.Name.ToLower() == productName.ToLower());
+
+    if(ourProduct == null){
+        Console.WriteLine("no product found");
+        throw new KeyNotFoundException();
+    }
+    return ourProduct;
+}
 
 ProductType getProductTypeForProduct(Product ourProduct){
 
@@ -139,8 +145,9 @@ void DisplayAllProducts(List<Product> products, List<ProductType> productTypes)
            Console.WriteLine(@$"
             {counter}. Product: {eachProduct.Name}, Price: {eachProduct.Price:C}, Type: {ourProductType.Title}");
             if (!productNumberDictionary.ContainsKey(counter)){
-                productNumberDictionary[counter++] = eachProduct;
+                productNumberDictionary[counter] = eachProduct;
             }
+            counter++;
     }
 //  public Product(string name, decimal price, int productTypeId)
     // {
@@ -152,8 +159,8 @@ void DisplayAllProducts(List<Product> products, List<ProductType> productTypes)
 
 
 Product findProductBasedOffEnteredNumber(){
-    DisplayAllProducts(products, productTypes);
-    Console.WriteLine("Enter the number of the product you want to delete,");
+    // DisplayAllProducts(products, productTypes);
+    Console.WriteLine("Enter the number of the product you want to find");
     int enteredDigit;
     bool validDigit = false;
     Product foundProduct = null;
@@ -177,9 +184,6 @@ while (!validDigit)
 return foundProduct;
 }
 
-
-void DeleteProduct(List<Product> products, List<ProductType> productTypes)
-{
 //     DisplayAllProducts(products, productTypes);
 //     Console.WriteLine("Enter the number of the product you want to delete,");
 //     int enteredDigit;
@@ -201,25 +205,43 @@ void DeleteProduct(List<Product> products, List<ProductType> productTypes)
 //         }
 //     }
 // }
+void DeleteProduct(List<Product> products, List<ProductType> productTypes)
+{
+    // Log input parameters
+    Console.WriteLine("Starting DeleteProduct method...");
+    Console.WriteLine($"Number of products passed: {products?.Count ?? 0}");
+    Console.WriteLine($"Number of product types passed: {productTypes?.Count ?? 0}");
 
-Product foundProduct = findProductBasedOffEnteredNumber();
-
-    // Now you can safely remove the product
-    if (foundProduct != null)
+    try
     {
-        products.Remove(foundProduct);
-        Console.WriteLine("Product removed successfully.");
+        Product foundProduct = findProductBasedOffEnteredNumber();
+
+        // Log the found product or lack thereof
+        if (foundProduct != null)
+        {
+            Console.WriteLine($"Product found for deletion: {foundProduct.Name}");
+            products.Remove(foundProduct);
+            Console.WriteLine("Product removed successfully.");
+        }
+        else
+        {
+            Console.WriteLine("No product found to remove.");
+        }
     }
-    else
+    catch (Exception ex)
     {
-        Console.WriteLine("No product found to remove.");
+        // Log any unexpected exceptions
+        Console.WriteLine($"Exception encountered: {ex.Message}");
+        throw; // Re-throw to not hide the exception from the test runner
     }
 }
+
 
 void AddProduct(List<Product> products, List<ProductType> productTypes)
 {
     string ourProductName;
     int ourProductPrice;
+    int ourProductTypeId;
     ProductType ourProductType = null;
     Console.WriteLine("please enter a product name you want for the product to add");
   while (true)
@@ -252,7 +274,14 @@ DisplayAllProductTypes(productTypes);
 Console.WriteLine("Please enter the name of the product type you want this product you are adding to be");
 
 while(true){
-    string input = Console.ReadLine().Trim().ToLower();
+      string input = (Console.ReadLine() ?? string.Empty).Trim().ToLower();
+    if (input == null)
+{
+    Console.WriteLine("Received null input. Check test setup.");
+    return; // Or handle this case appropriately
+}
+
+
     if(string.IsNullOrEmpty(input)){
         Console.WriteLine("please enter a valid string name for the product type you want");
     } else {
@@ -272,14 +301,19 @@ while(true){
 Product ourNewProduct = new Product{
 Name = ourProductName,
 Price = ourProductPrice,
-ProductType = ourProductType
+ProductTypeId = ourProductType.Id
 };
 products.Add(ourNewProduct);
-Console.WriteLine(@$"new product with {ourProductName} name and {ourProductPrice} price and {ourProductType} type was added ");
+Console.WriteLine(@$"new product with {ourProductName} name and {ourProductPrice} price and {ourProductType} type and product type ID of {ourProductType.Id} was added ");
+
+Product doesProductExist =  getProductFromList(ourProductName);
+
+Console.WriteLine(@$"the product we added as we try to retrieve with name {doesProductExist.Name} and price of {doesProductExist.Price} and type {doesProductExist.ProductType}");
 }
 
 void UpdateProduct(List<Product> products, List<ProductType> productTypes)
 {
+    Console.WriteLine("products will display below pick the one you want to update");
     DisplayAllProducts(products, productTypes);
     Product productToUpdate = null;
     while(productToUpdate == null){
@@ -296,95 +330,162 @@ void UpdateProduct(List<Product> products, List<ProductType> productTypes)
     }
     }
     
-    string nameToUpdate;
-    int priceToUpdate;
-    ProductType productTypeToUpdate = null;
-
-
-
-Console.WriteLine("If you would like to update the name, press 1. If not, press 2.");
-
-int decisionToUpdateName;
-while (true)
-{
-    // Get initial decision to update the name
-    if (!int.TryParse(Console.ReadLine(), out decisionToUpdateName) || decisionToUpdateName < 1 || decisionToUpdateName > 2)
-    {
-        Console.WriteLine("Please choose either 1 or 2 to make a decision on updating the name.");
+    string nameToUpdate = UpdateProductName(productToUpdate);
+    productToUpdate.Name = nameToUpdate;
+     decimal priceToUpdate = UpdateProductPrice(productToUpdate.Price);
+    productToUpdate.Price = priceToUpdate;
+    ProductType productTypeToUpdate = UpdateProductType(productTypes, productToUpdate.ProductTypeId);
+    if(productTypeToUpdate != null){
+        productToUpdate.ProductTypeId = productTypeToUpdate.Id;
     }
-    else if (decisionToUpdateName == 2)
-    {
-        // User decided not to update the name
-        Console.WriteLine("You have chosen not to update the product name.");
-        return; // Exit from the method if user cancels
-    }
-    else
-    {
-        // Proceed with updating the name
-        Console.WriteLine("You have chosen to update the name of this product.");
-        break;
-    }
+
+    Console.WriteLine("Product successfully updated!");
+
 }
 
-while(true){
-    Console.WriteLine("Please enter the new name you want for the product to update with.");
-    string input = Console.ReadLine().Trim();
-     if (string.IsNullOrEmpty(input))
+
+string UpdateProductName(Product productToUpdate)
+{
+    Console.WriteLine("If you would like to update the name, press 1. If not, press 2.");
+
+    int decisionToUpdateName;
+    while (true)
     {
-        Console.WriteLine("Please enter an actual valid string for the new name. Press 2 to cancel.");
-    }
-    else {
-        Console.WriteLine(@$"you have chosen to update the name of the {productToUpdate.Name} to {input}. If you want to undo this press 2 right now");
-        if(int.TryParse(Console.ReadLine(), out decisionToUpdateName) && decisionToUpdateName == 2){
-            Console.WriteLine("you have chosen to chancel the decision to update hte product name");
+        if (!int.TryParse(Console.ReadLine(), out decisionToUpdateName) || decisionToUpdateName < 1 || decisionToUpdateName > 2)
+        {
+            Console.WriteLine("Please choose either 1 or 2.");
+        }
+        else if (decisionToUpdateName == 2)
+        {
+            Console.WriteLine("You have chosen not to update the product name.");
+            return productToUpdate.Name;
+        }
+        else
+        {
             break;
-            //return; if you did this then the entire method here of updating would stop running. This allows you by doing break to try ot update other stuff like price IMPORTANT
-        } else {
-         nameToUpdate = input;
-         break;
+        }
+    }
+
+    while (true)
+    {
+        Console.WriteLine("Please enter the new name:");
+        string input = Console.ReadLine().Trim();
+        if (string.IsNullOrEmpty(input))
+        {
+            Console.WriteLine("Invalid name. Press 2 to cancel.");
+        }
+        else
+        {
+            Console.WriteLine(@$"Updating {productToUpdate.Name} to {input}. Press 2 to undo. Press enter to continue");
+            if (int.TryParse(Console.ReadLine(), out decisionToUpdateName) && decisionToUpdateName == 2)
+            {
+                Console.WriteLine("Name update cancelled.");
+                return productToUpdate.Name;
+            }
+            else
+            {
+                return input;
+            }
         }
     }
 }
-    // Console.WriteLine(@$"if you would like to update the name press 1. If not press 2");
-    // int decisionToUpdateName;
-    // while(true){
-    // if(!int.TryParse(Console.ReadLine(), out decisionToUpdateName) || decisionToUpdateName < 1 || decisionToUpdateName > 2){
-    //     Console.WriteLine("please choose either 1 or 2 to make a decision on updating the name");
-    // } else {
-    //     break;
-    // }
-    // }
-    // if(decisionToUpdateName == 1){
-    //     Console.WriteLine(@"Please enter the new name you want for the product to update with");
-    //     while(true){
-    //         string input = Console.ReadLine().Trim(); // Read input and trim whitespace
-    // if (!string.IsNullOrEmpty(input)){
-    //     Console.WriteLine(@"Please enter an actual valid string for the new name you want to update the product to. Press 2 to cancel the decision to update the name");
-    //     if(int.TryParse(Console.ReadLine(), out decisionToUpdateName) && decisionToUpdateName == 2){
-    //         Console.WriteLine("you have chosen to cancel trying to update the name of the product");
-    //         break;
-    //     }
 
-    // } else {
-    //     nameToUpdate = input;
-    //     Console.WriteLine(@$"you have chosen to update the name of the product to ${input}. If you want to reverse this decision do so now by pressing 2");
-    //       if(int.TryParse(Console.ReadLine(), out decisionToUpdateName) && decisionToUpdateName == 2){
-    //         Console.WriteLine("you have chosen to cancel trying to update the name of the product");
-    //         break;
+decimal UpdateProductPrice(decimal currentPrice)
+{
+    Console.WriteLine($"Current price: {currentPrice:C}");
+    Console.WriteLine("If you would like to update the price, press 1. If not, press 2.");
 
-    // }
-    //     }
-    // }
-    // }
-    
+    int decision;
+    while (true)
+    {
+        if (!int.TryParse(Console.ReadLine(), out decision) || (decision < 1 || decision > 2))
+        {
+            Console.WriteLine("Please enter 1 to update the price or 2 to skip.");
+        }
+        else if (decision == 2)
+        {
+            Console.WriteLine("You have chosen not to update the price.");
+            return currentPrice; // Return the current price if skipped
+        }
+        else
+        {
+            break; // Proceed with price update
+        }
+    }
 
-
-
-
-
-
-    throw new NotImplementedException();
+    while (true)
+    {
+        Console.WriteLine("Enter the new price:");
+        if (decimal.TryParse(Console.ReadLine(), out decimal price) && price >= 0)
+        {
+            return price; // Return the new price
+        }
+        else
+        {
+            Console.WriteLine("Invalid price. Please enter a valid decimal value.");
+        }
+    }
 }
+
+
+ProductType UpdateProductType(List<ProductType> productTypes, int currentTypeId)
+{
+    // Fetch the current product type based on the ID
+    ProductType currentType = productTypes.FirstOrDefault(pt => pt.Id == currentTypeId);
+
+    if (currentType == null)
+    {
+        Console.WriteLine($"Error: No matching product type found for ID {currentTypeId}");
+        return null; // Handle null to avoid further issues
+    }
+
+    Console.WriteLine($"Current product type: {currentType.Title}");
+    Console.WriteLine("If you would like to update the product type, press 1. If not, press 2.");
+
+    int decision;
+    while (true)
+    {
+        if (!int.TryParse(Console.ReadLine(), out decision) || decision < 1 || decision > 2)
+        {
+            Console.WriteLine("Please enter 1 to update the product type or 2 to skip.");
+        }
+        else if (decision == 2)
+        {
+            Console.WriteLine("You have chosen not to update the product type.");
+            return currentType; // Return the current type if skipped
+        }
+        else
+        {
+            break; // Proceed with type update
+        }
+    }
+
+    // Display available product types
+    Console.WriteLine("Available product types:");
+    foreach (var type in productTypes)
+    {
+        Console.WriteLine(@$"{type.Id}. {type.Title}");
+    }
+
+    // Prompt user to enter the new product type name
+    while (true)
+    {
+        Console.WriteLine("Enter the name of the new product type:");
+        string input = Console.ReadLine().Trim().ToLower();
+
+        ProductType matchingType = productTypes.FirstOrDefault(pt => pt.Title.ToLower() == input);
+        if (matchingType != null)
+        {
+            return matchingType; // Return the selected type
+        }
+        else
+        {
+            Console.WriteLine("Invalid product type name. Please try again.");
+        }
+    }
+}
+
+
 
 // don't move or change this!
 public partial class Program { }
