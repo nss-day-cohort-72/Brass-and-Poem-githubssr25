@@ -58,17 +58,11 @@ ProductType getProductTypeForProduct(Product ourProduct){
     return productTypes.Find(productType => productType.Id == ourProduct.ProductTypeId);
 
 }
-//{
-//     product.ProductType = productTypes.Find(pt => pt.Id == product.ProductTypeId);
-// }
 
  Console.WriteLine("Welcome to the Product Management Application!");
 
-//implement your loop here
-
         void clearFunction()
         {
-            Console.Clear(); // clear console before showing menu
             Console.WriteLine(@"Choose an option:
     1. Press 1 to display all products.
     2. Press 2 to delete all products.
@@ -149,12 +143,6 @@ void DisplayAllProducts(List<Product> products, List<ProductType> productTypes)
             }
             counter++;
     }
-//  public Product(string name, decimal price, int productTypeId)
-    // {
-    //     Name = name;
-    //     Price = price;
-    //     ProductTypeId = productTypeId;
-    // }
 }
 
 
@@ -184,27 +172,6 @@ while (!validDigit)
 return foundProduct;
 }
 
-//     DisplayAllProducts(products, productTypes);
-//     Console.WriteLine("Enter the number of the product you want to delete,");
-//     int enteredDigit;
-//     bool validDigit = false;
-//     Product foundProduct = null;
-// while (!validDigit)
-// {
-//     if (!int.TryParse(Console.ReadLine().Trim(), out enteredDigit))
-//     {
-//         Console.WriteLine("Please enter a valid digit.");
-//     }else{
-//         foundProduct = productNumberDictionary.GetValueOrDefault(enteredDigit);
-
-//         if (foundProduct != null){
-//             Console.WriteLine($"Product found: {foundProduct.Name} - ${foundProduct.Price}");
-//             validDigit = true;  // Exit loop
-//         } else{
-//             Console.WriteLine("No product found for the given number.");
-//         }
-//     }
-// }
 void DeleteProduct(List<Product> products, List<ProductType> productTypes)
 {
     // Log input parameters
@@ -230,7 +197,6 @@ void DeleteProduct(List<Product> products, List<ProductType> productTypes)
     }
     catch (Exception ex)
     {
-        // Log any unexpected exceptions
         Console.WriteLine($"Exception encountered: {ex.Message}");
         throw; // Re-throw to not hide the exception from the test runner
     }
@@ -476,7 +442,7 @@ ProductType UpdateProductType(List<ProductType> productTypes, int currentTypeId)
         ProductType matchingType = productTypes.FirstOrDefault(pt => pt.Title.ToLower() == input);
         if (matchingType != null)
         {
-            return matchingType; // Return the selected type
+            return matchingType; 
         }
         else
         {
